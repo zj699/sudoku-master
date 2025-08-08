@@ -1,0 +1,99 @@
+{
+  "name": "数独大师 - 100关挑战",
+  "short_name": "数独大师",
+  "description": "拥有100个递增难度关卡的专业数独游戏，支持多种数独类型和完整的进度系统",
+  "version": "1.0.0",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#2196F3",
+  "background_color": "#f5f5f5",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["games", "puzzle", "entertainment"],
+  "screenshots": [
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "360x640",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "移动端游戏界面"
+    },
+    {
+      "src": "screenshot-desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "桌面端游戏界面"
+    }
+  ],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzIxOTZGMyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzE5NzZEMiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjkwIiBmaWxsPSJ1cmwoI2JnKSIvPjxyZWN0IHg9IjM2IiB5PSIzNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSI2IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuOTUpIi8+PGcgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiPjxsaW5lIHgxPSI1MCIgeTE9IjM2IiB4Mj0iNTAiIHkyPSIxNTYiLz48bGluZSB4MT0iNjQiIHkxPSIzNiIgeDI9IjY0IiB5Mj0iMTU2Ii8+PGxpbmUgeDE9Ijc4IiB5MT0iMzYiIHgyPSI3OCIgeTI9IjE1NiIvPjxsaW5lIHgxPSI5MiIgeTE9IjM2IiB4Mj0iOTIiIHkyPSIxNTYiLz48bGluZSB4MT0iMTEwIiB5MT0iMzYiIHgyPSIxMTAiIHkyPSIxNTYiLz48bGluZSB4MT0iMTI0IiB5MT0iMzYiIHgyPSIxMjQiIHkyPSIxNTYiLz48bGluZSB4MT0iMTM4IiB5MT0iMzYiIHgyPSIxMzgiIHkyPSIxNTYiLz48bGluZSB4MT0iMTUyIiB5MT0iMzYiIHgyPSIxNTIiIHkyPSIxNTYiLz48bGluZSB4MT0iMzYiIHkxPSI1MCIgeDI9IjE1NiIgeTI9IjUwIi8+PGxpbmUgeDE9IjM2IiB5MT0iNjQiIHgyPSIxNTYiIHkyPSI2NCIvPjxsaW5lIHgxPSIzNiIgeTE9Ijc4IiB4Mj0iMTU2IiB5Mj0iNzgiLz48bGluZSB4MT0iMzYiIHkxPSI5MiIgeDI9IjE1NiIgeTI9IjkyIi8+PGxpbmUgeDE9IjM2IiB5MT0iMTEwIiB4Mj0iMTU2IiB5Mj0iMTEwIi8+PGxpbmUgeDE9IjM2IiB5MT0iMTI0IiB4Mj0iMTU2IiB5Mj0iMTI0Ii8+PGxpbmUgeDE9IjM2IiB5MT0iMTM4IiB4Mj0iMTU2IiB5Mj0iMTM4Ii8+PGxpbmUgeDE9IjM2IiB5MT0iMTUyIiB4Mj0iMTU2IiB5Mj0iMTUyIi8+PC9nPjxnIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIj48bGluZSB4MT0iNzgiIHkxPSIzNiIgeDI9Ijc4IiB5Mj0iMTU2Ii8+PGxpbmUgeDE9IjEyNCIgeTE9IjM2IiB4Mj0iMTI0IiB5Mj0iMTU2Ii8+PGxpbmUgeDE9IjM2IiB5MT0iNzgiIHgyPSIxNTYiIHkyPSI3OCIvPjxsaW5lIHgxPSIzNiIgeTE9IjEyNCIgeDI9IjE1NiIgeTI9IjEyNCIvPjwvZz48cmVjdCB4PSIzNiIgeT0iMzYiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiByeD0iNiIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48ZyBmaWxsPSIjMjE5NkYzIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCI+PHRleHQgeD0iNDMiIHk9IjQzIj41PC90ZXh0Pjx0ZXh0IHg9IjcxIiB5PSI0MyI+ODwvdGV4dD48dGV4dCB4PSIxMzEiIHk9IjQzIj43PC90ZXh0Pjx0ZXh0IHg9IjU3IiB5PSI1NyI+MzwvdGV4dD48dGV4dCB4PSIxMTciIHk9IjU3Ij4xPC90ZXh0Pjx0ZXh0IHg9IjQzIiB5PSI3MSI+MjwvdGV4dD48dGV4dCB4PSIxNDUiIHk9IjcxIj40PC90ZXh0Pjx0ZXh0IHg9Ijg1IiB5PSI4NSI+NjwvdGV4dD48dGV4dCB4PSIxMTciIHk9Ijg1Ij45PC90ZXh0Pjx0ZXh0IHg9IjU3IiB5PSI5OSI+NzwvdGV4dD48dGV4dCB4PSIxNDUiIHk9Ijk5Ij44PC90ZXh0Pjx0ZXh0IHg9Ijg1IiB5PSIxMTEiPjQ8L3RleHQ+PHRleHQgeD0iMTE3IiB5PSIxMTEiPjI8L3RleHQ+PHRleHQgeD0iNTciIHk9IjEyNSI+NTwvdGV4dD48dGV4dCB4PSIxNTkiIHk9IjEyNSI+MzwvdGV4dD48dGV4dCB4PSI4NSIgeT0iMTM5Ij4xPC90ZXh0Pjx0ZXh0IHg9IjE0NSIgeT0iMTM5Ij42PC90ZXh0Pjx0ZXh0IHg9IjcxIiB5PSIxNTMiPjk8L3RleHQ+PHRleHQgeD0iMTMxIiB5PSIxNTMiPjI8L3RleHQ+PHRleHQgeD0iMTU5IiB5PSIxNTMiPjU8L3RleHQ+PC9nPjxnIGZpbGw9IiNmZmZmZmYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjx0ZXh0IHg9Ijk2IiB5PSIyMCIgZm9udC1zaXplPSIxNCI+5pWw54us5aSn5biIPC90ZXh0Pjx0ZXh0IHg9Ijk2IiB5PSIxODAiIGZvbnQtc2l6ZT0iOCI+MTAw5YWz5oyR5oiYPC90ZXh0PjwvZz48L3N2Zz4=",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "继续游戏",
+      "short_name": "继续",
+      "description": "继续上次未完成的关卡",
+      "url": "/?action=continue",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "选择关卡",
+      "short_name": "关卡",
+      "description": "选择要挑战的关卡",
+      "url": "/?action=levels",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "游戏统计",
+      "short_name": "统计",
+      "description": "查看游戏统计和成就",
+      "url": "/?action=stats",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "protocol_handlers": [],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "application/json": [".json", ".sudoku"]
+      },
+      "launch_type": "single-client"
+    }
+  ]
+}

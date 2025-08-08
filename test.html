@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数独大师 - 功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #1976D2; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .grid-preview {
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+    <h1>数独大师 - 功能测试页面</h1>
+    
+    <div class="test-section">
+        <h2>系统兼容性检测</h2>
+        <button onclick="checkCompatibility()">检测浏览器兼容性</button>
+        <div id="compatibility-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>数独生成器测试</h2>
+        <button onclick="testSudokuGenerator()">测试数独生成</button>
+        <button onclick="testDifferentLevels()">测试不同难度</button>
+        <div id="generator-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>游戏逻辑测试</h2>
+        <button onclick="testGameLogic()">测试游戏逻辑</button>
+        <button onclick="testValidation()">测试验证系统</button>
+        <div id="logic-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>数据存储测试</h2>
+        <button onclick="testDataStorage()">测试数据存储</button>
+        <button onclick="testPerformance()">性能测试</button>
+        <div id="storage-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>PWA功能测试</h2>
+        <button onclick="testPWA()">测试PWA功能</button>
+        <button onclick="testOffline()">测试离线功能</button>
+        <div id="pwa-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>移动端适配测试</h2>
+        <button onclick="testMobile()">测试移动端功能</button>
+        <button onclick="testTouch()">测试触摸交互</button>
+        <div id="mobile-results"></div>
+    </div>
+
+    <script src="js/sudoku-generator.js"></script>
+    <script src="js/game-logic.js"></script>
+    <script src="js/data-manager.js"></script>
+
+    <script>
+        let testResults = {};
+
+        function addResult(section, message, type = 'success') {
+            const container = document.getElementById(section + '-results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function checkCompatibility() {
+            const results = document.getElementById('compatibility-results');
+            results.innerHTML = '';
+
+            // 检查基础API支持
+            const checks = [
+                { name: 'IndexedDB', test: () => 'indexedDB' in window },
+                { name: 'Service Worker', test: () => 'serviceWorker' in navigator },
+                { name: 'Web App Manifest', test: () => 'onappinstalled' in window },
+                { name: 'LocalStorage', test: () => 'localStorage' in window },
+                { name: 'Canvas', test: () => document.createElement('canvas').getContext },
+                { name: 'Web Audio', test: () => 'AudioContext' in window || 'webkitAudioContext' in window },
+                { name: 'Touch Events', test: () => 'ontouchstart' in window },
+                { name: 'CSS Grid', test: () => CSS.supports('display', 'grid') }
+            ];
+
+            checks.forEach(check => {
+                try {
+                    if (check.test()) {
+                        addResult('compatibility', `✅ ${check.name}: 支持`, 'success');
+                    } else {
+                        addResult('compatibility', `❌ ${check.name}: 不支持`, 'error');
+                    }
+                } catch (error) {
+                    addResult('compatibility', `⚠️ ${check.name}: 检测失败 - ${error.message}`, 'warning');
+                }
+            });
+
+            // 屏幕信息
+            const screenInfo = `
+                屏幕尺寸: ${screen.width}x${screen.height}
+                可用尺寸: ${screen.availWidth}x${screen.availHeight}
+                窗口尺寸: ${window.innerWidth}x${window.innerHeight}
+                设备像素比: ${window.devicePixelRatio || 1}
+                用户代理: ${navigator.userAgent}
+            `;
+            addResult('compatibility', `<pre>${screenInfo}</pre>`, 'success');
+        }
+
+        async function testSudokuGenerator() {
+            const results = document.getElementById('generator-results');
+            results.innerHTML = '';
+
+            try {
+                const generator = new SudokuGenerator();
+                addResult('generator', '✅ 数独生成器实例化成功', 'success');
+
+                // 测试生成速度
+                const startTime = performance.now();
+                const puzzle = generator.generatePuzzle(1);
+                const endTime = performance.now();
+                
+                addResult('generator', `✅ 生成第1关用时: ${(endTime - startTime).toFixed(2)}ms`, 'success');
+                
+                // 验证生成的数独
+                if (puzzle.puzzle && puzzle.solution) {
+                    addResult('generator', '✅ 数独数据结构正确', 'success');
+                    
+                    // 显示数独预览
+                    const preview = formatGrid(puzzle.puzzle);
+                    addResult('generator', `<div class="grid-preview">生成的数独:\n${preview}</div>`, 'success');
+                    
+                    // 验证解决方案
+                    if (generator.isComplete(puzzle.solution)) {
+                        addResult('generator', '✅ 解决方案验证通过', 'success');
+                    } else {
+                        addResult('generator', '❌ 解决方案验证失败', 'error');
+                    }
+                } else {
+                    addResult('generator', '❌ 数独生成失败', 'error');
+                }
+
+            } catch (error) {
+                addResult('generator', `❌ 测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDifferentLevels() {
+            const results = document.getElementById('generator-results');
+            const generator = new SudokuGenerator();
+            
+            const levels = [1, 25, 50, 75, 100];
+            
+            for (let level of levels) {
+                try {
+                    const startTime = performance.now();
+                    const puzzle = generator.generatePuzzle(level);
+                    const endTime = performance.now();
+                    
+                    const emptyCells = countEmptyCells(puzzle.puzzle);
+                    addResult('generator', 
+                        `✅ 第${level}关 - 用时: ${(endTime - startTime).toFixed(2)}ms, 空格: ${emptyCells}, 类型: ${puzzle.type}`, 
+                        'success');
+                } catch (error) {
+                    addResult('generator', `❌ 第${level}关生成失败: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testGameLogic() {
+            const results = document.getElementById('logic-results');
+            results.innerHTML = '';
+
+            try {
+                const game = new GameLogic();
+                addResult('logic', '✅ 游戏逻辑实例化成功', 'success');
+
+                // 测试初始化关卡
+                const levelData = game.initializeLevel(1);
+                if (levelData && levelData.puzzle) {
+                    addResult('logic', '✅ 关卡初始化成功', 'success');
+                } else {
+                    addResult('logic', '❌ 关卡初始化失败', 'error');
+                }
+
+                // 测试放置数字
+                const result = game.placeNumber(0, 0, 5);
+                if (result) {
+                    addResult('logic', `✅ 数字放置测试: ${result.success ? '成功' : '失败'}`, result.success ? 'success' : 'warning');
+                }
+
+                // 测试提示功能
+                const hint = game.getHint();
+                if (hint) {
+                    addResult('logic', `✅ 提示功能测试: ${hint.success ? '成功' : '失败'}`, hint.success ? 'success' : 'warning');
+                }
+
+                // 测试计时器
+                game.startTimer();
+                setTimeout(() => {
+                    const time = game.getFormattedTime();
+                    addResult('logic', `✅ 计时器测试: ${time}`, 'success');
+                    game.stopTimer();
+                }, 1000);
+
+            } catch (error) {
+                addResult('logic', `❌ 测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testValidation() {
+            const generator = new SudokuGenerator();
+            const puzzle = generator.generatePuzzle(1);
+            
+            // 测试验证函数
+            const errors = generator.validateCurrentState(puzzle.solution);
+            addResult('logic', `✅ 验证系统测试: 发现${errors.length}个错误`, errors.length === 0 ? 'success' : 'warning');
+            
+            // 测试完成检查
+            const isComplete = generator.isComplete(puzzle.solution);
+            addResult('logic', `✅ 完成检查测试: ${isComplete ? '已完成' : '未完成'}`, isComplete ? 'success' : 'warning');
+        }
+
+        async function testDataStorage() {
+            const results = document.getElementById('storage-results');
+            results.innerHTML = '';
+
+            try {
+                const dataManager = new DataManager();
+                addResult('storage', '✅ 数据管理器实例化成功', 'success');
+
+                // 测试数据库初始化
+                await dataManager.initDB();
+                addResult('storage', '✅ 数据库初始化成功', 'success');
+
+                // 测试数据保存和读取
+                const testData = {
+                    completed: true,
+                    time: 123456,
+                    stars: 3,
+                    mistakes: 0
+                };
+
+                await dataManager.saveGameProgress(1, testData);
+                addResult('storage', '✅ 数据保存测试成功', 'success');
+
+                const savedData = await dataManager.getGameProgress(1);
+                if (savedData && savedData.time === testData.time) {
+                    addResult('storage', '✅ 数据读取测试成功', 'success');
+                } else {
+                    addResult('storage', '❌ 数据读取测试失败', 'error');
+                }
+
+                // 测试统计功能
+                const stats = await dataManager.getUserStats();
+                addResult('storage', `✅ 用户统计获取成功: 总游戏${stats.totalGames}次`, 'success');
+
+            } catch (error) {
+                addResult('storage', `❌ 存储测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testPerformance() {
+            const startTime = performance.now();
+            
+            // 生成多个数独测试性能
+            const generator = new SudokuGenerator();
+            const puzzles = [];
+            
+            for (let i = 0; i < 5; i++) {
+                puzzles.push(generator.generatePuzzle(Math.floor(Math.random() * 100) + 1));
+            }
+            
+            const endTime = performance.now();
+            addResult('storage', `✅ 性能测试: 生成5个数独用时 ${(endTime - startTime).toFixed(2)}ms`, 'success');
+            
+            // 内存使用
+            if (performance.memory) {
+                const memory = performance.memory;
+                addResult('storage', 
+                    `✅ 内存使用: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB / ${(memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2)}MB`, 
+                    'success');
+            }
+        }
+
+        async function testPWA() {
+            const results = document.getElementById('pwa-results');
+            results.innerHTML = '';
+
+            // 检查manifest
+            if (document.querySelector('link[rel="manifest"]')) {
+                addResult('pwa', '✅ Manifest文件已链接', 'success');
+            } else {
+                addResult('pwa', '❌ Manifest文件未找到', 'error');
+            }
+
+            // 检查Service Worker
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        addResult('pwa', '✅ Service Worker已注册', 'success');
+                    } else {
+                        addResult('pwa', '⚠️ Service Worker未注册', 'warning');
+                    }
+                } catch (error) {
+                    addResult('pwa', `❌ Service Worker检查失败: ${error.message}`, 'error');
+                }
+            }
+
+            // 检查安装提示
+            window.addEventListener('beforeinstallprompt', (e) => {
+                addResult('pwa', '✅ 可以安装PWA', 'success');
+            });
+
+            // 检查缓存
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                addResult('pwa', `✅ 缓存存储: 找到${cacheNames.length}个缓存`, 'success');
+            }
+        }
+
+        async function testOffline() {
+            addResult('pwa', '⚠️ 离线测试需要手动断开网络连接后刷新页面', 'warning');
+            
+            // 模拟网络状态检测
+            if ('onLine' in navigator) {
+                addResult('pwa', `✅ 网络状态: ${navigator.onLine ? '在线' : '离线'}`, 'success');
+            }
+
+            window.addEventListener('online', () => {
+                addResult('pwa', '✅ 检测到网络恢复', 'success');
+            });
+
+            window.addEventListener('offline', () => {
+                addResult('pwa', '⚠️ 检测到网络断开', 'warning');
+            });
+        }
+
+        function testMobile() {
+            const results = document.getElementById('mobile-results');
+            results.innerHTML = '';
+
+            // 检测移动设备
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            addResult('mobile', `✅ 设备类型: ${isMobile ? '移动设备' : '桌面设备'}`, 'success');
+
+            // 检测触摸支持
+            const hasTouch = 'ontouchstart' in window;
+            addResult('mobile', `✅ 触摸支持: ${hasTouch ? '支持' : '不支持'}`, hasTouch ? 'success' : 'warning');
+
+            // 检测屏幕方向
+            if ('orientation' in screen) {
+                addResult('mobile', `✅ 屏幕方向: ${screen.orientation.angle}度`, 'success');
+            }
+
+            // 检测视口
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                addResult('mobile', `✅ 视口设置: ${viewport.content}`, 'success');
+            } else {
+                addResult('mobile', '❌ 缺少视口设置', 'error');
+            }
+
+            // 检测CSS支持
+            const supports = {
+                grid: CSS.supports('display', 'grid'),
+                flexbox: CSS.supports('display', 'flex'),
+                touchAction: CSS.supports('touch-action', 'none')
+            };
+
+            Object.entries(supports).forEach(([feature, supported]) => {
+                addResult('mobile', `${supported ? '✅' : '❌'} CSS ${feature}: ${supported ? '支持' : '不支持'}`, supported ? 'success' : 'error');
+            });
+        }
+
+        function testTouch() {
+            if ('ontouchstart' in window) {
+                let touchCount = 0;
+                const touchTest = document.createElement('div');
+                touchTest.style.cssText = `
+                    width: 200px;
+                    height: 100px;
+                    background: #2196F3;
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 10px 0;
+                    border-radius: 8px;
+                    cursor: pointer;
+                `;
+                touchTest.textContent = '点击测试触摸响应';
+
+                touchTest.addEventListener('touchstart', (e) => {
+                    touchCount++;
+                    touchTest.textContent = `触摸次数: ${touchCount}`;
+                    touchTest.style.background = '#4CAF50';
+                    setTimeout(() => {
+                        touchTest.style.background = '#2196F3';
+                    }, 200);
+                });
+
+                const container = document.getElementById('mobile-results');
+                container.appendChild(touchTest);
+                
+                addResult('mobile', '✅ 触摸测试区域已创建，请点击上方区域测试', 'success');
+            } else {
+                addResult('mobile', '⚠️ 当前设备不支持触摸', 'warning');
+            }
+        }
+
+        // 辅助函数
+        function formatGrid(grid) {
+            return grid.map(row => 
+                row.map(cell => cell === 0 ? '·' : cell).join(' ')
+            ).join('\n');
+        }
+
+        function countEmptyCells(grid) {
+            return grid.flat().filter(cell => cell === 0).length;
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('数独大师测试页面已加载');
+            
+            // 自动运行兼容性检测
+            setTimeout(() => {
+                checkCompatibility();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

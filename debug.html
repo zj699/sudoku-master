@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数独大师 - 调试版</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .debug-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .error { color: #d32f2f; }
+        .success { color: #388e3c; }
+        .warning { color: #f57c00; }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #1976D2; }
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            gap: 1px;
+            background: #333;
+            margin: 20px 0;
+            width: fit-content;
+        }
+        .sudoku-cell {
+            width: 40px;
+            height: 40px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .sudoku-cell.given {
+            background: #e3f2fd;
+        }
+        .sudoku-cell.selected {
+            background: #2196F3;
+            color: white;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.ok { background: #c8e6c9; }
+        .status.error { background: #ffcdd2; }
+    </style>
+</head>
+<body>
+    <h1>数独大师 - 调试版</h1>
+    
+    <div class="status" id="gameStatus">游戏状态：未初始化</div>
+    
+    <div>
+        <button onclick="initGame()">初始化游戏</button>
+        <button onclick="testSudokuGeneration()">测试数独生成</button>
+        <button onclick="testGameLogic()">测试游戏逻辑</button>
+        <button onclick="startLevel1()">开始第1关</button>
+        <button onclick="clearDebug()">清除调试信息</button>
+    </div>
+
+    <div id="sudokuContainer">
+        <div class="sudoku-grid" id="debugGrid"></div>
+    </div>
+
+    <div id="debugOutput"></div>
+
+    <script src="js/sudoku-generator.js"></script>
+    <script src="js/game-logic.js"></script>
+    <script>
+        let game = null;
+        let generator = null;
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('debugOutput');
+            const div = document.createElement('div');
+            div.className = `debug-info ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(div);
+            console.log(message);
+            
+            // 自动滚动到最新消息
+            div.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateStatus(message, isError = false) {
+            const status = document.getElementById('gameStatus');
+            status.textContent = `游戏状态：${message}`;
+            status.className = `status ${isError ? 'error' : 'ok'}`;
+        }
+
+        function clearDebug() {
+            document.getElementById('debugOutput').innerHTML = '';
+            log('调试信息已清除');
+        }
+
+        function initGame() {
+            try {
+                log('开始初始化游戏组件...');
+                
+                generator = new SudokuGenerator();
+                log('✅ 数独生成器创建成功', 'success');
+                
+                game = new GameLogic();
+                log('✅ 游戏逻辑创建成功', 'success');
+                
+                updateStatus('已初始化');
+                log('🎉 游戏初始化完成', 'success');
+                
+            } catch (error) {
+                log(`❌ 游戏初始化失败: ${error.message}`, 'error');
+                updateStatus('初始化失败', true);
+            }
+        }
+
+        function testSudokuGeneration() {
+            if (!generator) {
+                log('❌ 请先初始化游戏', 'error');
+                return;
+            }
+
+            try {
+                log('开始测试数独生成...');
+                
+                const startTime = performance.now();
+                const puzzle = generator.generatePuzzle(1);
+                const endTime = performance.now();
+                
+                log(`✅ 数独生成成功，用时: ${(endTime - startTime).toFixed(2)}ms`, 'success');
+                log(`难度: ${puzzle.difficulty}, 类型: ${puzzle.type}`);
+                
+                // 验证数独结构
+                if (puzzle.puzzle && puzzle.solution && 
+                    Array.isArray(puzzle.puzzle) && puzzle.puzzle.length === 9) {
+                    log('✅ 数独结构验证通过', 'success');
+                    
+                    // 计算空格数量
+                    const emptyCount = puzzle.puzzle.flat().filter(cell => cell === 0).length;
+                    log(`空格数量: ${emptyCount}`);
+                    
+                    // 显示数独
+                    displaySudoku(puzzle.puzzle);
+                    
+                } else {
+                    log('❌ 数独结构验证失败', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ 数独生成测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testGameLogic() {
+            if (!game) {
+                log('❌ 请先初始化游戏', 'error');
+                return;
+            }
+
+            try {
+                log('开始测试游戏逻辑...');
+                
+                // 测试关卡初始化
+                const levelData = game.initializeLevel(1);
+                log('✅ 关卡初始化成功', 'success');
+                log(`关卡信息: ${levelData.type}, ${levelData.difficulty}`);
+                
+                // 测试选择格子
+                const selectResult = game.selectCell(0, 0);
+                log(`格子选择测试: ${selectResult ? '成功' : '失败'}`);
+                
+                // 测试选择数字
+                game.selectNumber(5);
+                log('✅ 数字选择测试成功', 'success');
+                
+                // 测试获取相关格子
+                const relatedCells = game.getRelatedCells(0, 0);
+                log(`✅ 相关格子获取成功，找到${relatedCells.length}个相关格子`, 'success');
+                
+                // 显示当前游戏状态
+                displaySudoku(game.playerGrid);
+                
+                updateStatus('游戏逻辑测试完成');
+                
+            } catch (error) {
+                log(`❌ 游戏逻辑测试失败: ${error.message}`, 'error');
+                updateStatus('游戏逻辑测试失败', true);
+            }
+        }
+
+        function startLevel1() {
+            if (!game) {
+                log('❌ 请先初始化游戏', 'error');
+                return;
+            }
+
+            try {
+                log('开始第1关...');
+                
+                const levelData = game.initializeLevel(1);
+                log('✅ 第1关加载成功', 'success');
+                
+                // 显示游戏网格
+                displaySudoku(game.playerGrid, true);
+                
+                // 添加点击事件
+                addGridClickEvents();
+                
+                updateStatus('第1关已开始');
+                
+            } catch (error) {
+                log(`❌ 第1关启动失败: ${error.message}`, 'error');
+                updateStatus('第1关启动失败', true);
+            }
+        }
+
+        function displaySudoku(grid, interactive = false) {
+            const gridElement = document.getElementById('debugGrid');
+            gridElement.innerHTML = '';
+
+            if (!Array.isArray(grid) || grid.length !== 9) {
+                log('❌ 无效的数独网格格式', 'error');
+                return;
+            }
+
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'sudoku-cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    const value = grid[row] ? grid[row][col] : 0;
+                    cell.textContent = value > 0 ? value : '';
+                    
+                    // 标记预填数字
+                    if (game && game.currentPuzzle && 
+                        game.currentPuzzle[row] && 
+                        game.currentPuzzle[row][col] > 0) {
+                        cell.classList.add('given');
+                    }
+                    
+                    if (interactive) {
+                        cell.style.cursor = 'pointer';
+                    }
+                    
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        function addGridClickEvents() {
+            document.querySelectorAll('.sudoku-cell').forEach(cell => {
+                cell.addEventListener('click', () => {
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+                    
+                    // 清除之前的选择
+                    document.querySelectorAll('.sudoku-cell').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    
+                    // 选择当前格子
+                    cell.classList.add('selected');
+                    
+                    if (game) {
+                        const result = game.selectCell(row, col);
+                        log(`选择格子 [${row},${col}]: ${result ? '成功' : '失败'}`);
+                        
+                        // 如果有选择的数字，尝试放置
+                        if (game.selectedNumber > 0) {
+                            const placeResult = game.placeNumber(row, col, game.selectedNumber);
+                            if (placeResult.success) {
+                                log(`✅ 成功放置数字 ${game.selectedNumber}`, 'success');
+                                displaySudoku(game.playerGrid, true);
+                                addGridClickEvents();
+                            } else if (placeResult.mistake) {
+                                log(`❌ 错误的数字 ${game.selectedNumber}`, 'error');
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+            if (game && e.key >= '1' && e.key <= '9') {
+                const num = parseInt(e.key);
+                game.selectNumber(num);
+                log(`选择数字: ${num}`);
+            }
+        });
+
+        // 自动初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('页面加载完成');
+            setTimeout(() => {
+                initGame();
+            }, 500);
+        });
+
+        // 全局错误处理
+        window.addEventListener('error', (event) => {
+            log(`❌ 全局错误: ${event.error?.message || event.message}`, 'error');
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`❌ 未处理的Promise错误: ${event.reason?.message || event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

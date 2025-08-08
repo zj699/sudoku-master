@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>数独大师 - 100关挑战</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzIxOTZGMyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzE5NzZEMiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjkwIiBmaWxsPSJ1cmwoI2JnKSIvPjxyZWN0IHg9IjM2IiB5PSIzNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSI2IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuOTUpIi8+PHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgcng9IjYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+PHRleHQgeD0iOTYiIHk9IjIwIiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7mlbDni6zlpKflrp48L3RleHQ+PC9zdmc+">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzIxOTZGMyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzE5NzZEMiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjkwIiBmaWxsPSJ1cmwoI2JnKSIvPjxyZWN0IHg9IjM2IiB5PSIzNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSI2IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuOTUpIi8+PHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgcng9IjYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+PHRleHQgeD0iOTYiIHk9IjIwIiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7mlbDni6zlpKflrp48L3RleHQ+PC9zdmc+">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 加载屏幕 -->
+        <div id="loading" class="screen">
+            <div class="loader"></div>
+            <h2>数独大师</h2>
+            <p>正在加载游戏...</p>
+        </div>
+
+        <!-- 主菜单 -->
+        <div id="menu" class="screen">
+            <div class="header">
+                <h1>数独大师</h1>
+                <p>100关递增挑战</p>
+            </div>
+            
+            <div class="menu-content">
+                <div class="progress-info">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overallProgress"></div>
+                    </div>
+                    <p>总进度: <span id="progressText">0/100</span></p>
+                </div>
+
+                <div class="menu-buttons">
+                    <button id="continueBtn" class="btn btn-primary">继续游戏</button>
+                    <button id="levelSelectBtn" class="btn btn-secondary">选择关卡</button>
+                    <button id="settingsBtn" class="btn btn-secondary">设置</button>
+                    <button id="achievementsBtn" class="btn btn-secondary">成就</button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalTime">0分钟</span>
+                        <span class="stat-label">总游戏时间</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="bestTime">--:--</span>
+                        <span class="stat-label">最佳用时</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关卡选择界面 -->
+        <div id="levelSelect" class="screen">
+            <div class="header">
+                <button class="back-btn" id="backToMenu">←</button>
+                <h2>选择关卡</h2>
+            </div>
+            
+            <div class="difficulty-tabs">
+                <button class="tab-btn active" data-difficulty="easy">简单 (1-25)</button>
+                <button class="tab-btn" data-difficulty="medium">中等 (26-50)</button>
+                <button class="tab-btn" data-difficulty="hard">困难 (51-75)</button>
+                <button class="tab-btn" data-difficulty="expert">专家 (76-100)</button>
+            </div>
+
+            <div class="levels-grid" id="levelsGrid">
+                <!-- 关卡按钮将通过JS生成 -->
+            </div>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div id="game" class="screen">
+            <div class="game-header">
+                <button class="back-btn" id="backToLevels">←</button>
+                <div class="level-info">
+                    <span id="currentLevel">第1关</span>
+                    <span id="difficultyType">标准9x9</span>
+                </div>
+                <div class="game-stats">
+                    <span id="gameTimer">00:00</span>
+                    <span id="mistakeCount">错误: 0/3</span>
+                </div>
+            </div>
+
+            <div class="game-content">
+                <div class="sudoku-container">
+                    <div id="sudokuGrid" class="sudoku-grid">
+                        <!-- 数独网格将通过JS生成 -->
+                    </div>
+                </div>
+
+                <div class="game-controls">
+                    <div class="number-pad">
+                        <button class="num-btn" data-num="1">1</button>
+                        <button class="num-btn" data-num="2">2</button>
+                        <button class="num-btn" data-num="3">3</button>
+                        <button class="num-btn" data-num="4">4</button>
+                        <button class="num-btn" data-num="5">5</button>
+                        <button class="num-btn" data-num="6">6</button>
+                        <button class="num-btn" data-num="7">7</button>
+                        <button class="num-btn" data-num="8">8</button>
+                        <button class="num-btn" data-num="9">9</button>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="eraseBtn" class="action-btn">擦除</button>
+                        <button id="noteBtn" class="action-btn">笔记</button>
+                        <button id="hintBtn" class="action-btn">提示</button>
+                        <button id="pauseBtn" class="action-btn">暂停</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 暂停界面 -->
+        <div id="pause" class="screen overlay">
+            <div class="modal">
+                <h2>游戏暂停</h2>
+                <div class="modal-buttons">
+                    <button id="resumeBtn" class="btn btn-primary">继续</button>
+                    <button id="restartBtn" class="btn btn-secondary">重新开始</button>
+                    <button id="quitBtn" class="btn btn-secondary">退出关卡</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 完成关卡界面 -->
+        <div id="levelComplete" class="screen overlay">
+            <div class="modal">
+                <h2>恭喜通关!</h2>
+                <div class="completion-stats">
+                    <p>用时: <span id="completionTime">00:00</span></p>
+                    <p>错误: <span id="completionMistakes">0</span></p>
+                    <div class="stars" id="starsEarned">
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button id="nextLevelBtn" class="btn btn-primary">下一关</button>
+                    <button id="retryLevelBtn" class="btn btn-secondary">重玩</button>
+                    <button id="backToMenuBtn" class="btn btn-secondary">返回菜单</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置界面 -->
+        <div id="settings" class="screen">
+            <div class="header">
+                <button class="back-btn" id="backToMenuFromSettings">←</button>
+                <h2>设置</h2>
+            </div>
+            
+            <div class="settings-content">
+                <div class="setting-item">
+                    <label>音效</label>
+                    <input type="checkbox" id="soundToggle" checked>
+                </div>
+                <div class="setting-item">
+                    <label>自动检查错误</label>
+                    <input type="checkbox" id="errorCheckToggle" checked>
+                </div>
+                <div class="setting-item">
+                    <label>高亮相关数字</label>
+                    <input type="checkbox" id="highlightToggle" checked>
+                </div>
+                <div class="setting-item">
+                    <label>主题</label>
+                    <select id="themeSelect">
+                        <option value="light">明亮</option>
+                        <option value="dark">暗黑</option>
+                        <option value="blue">蓝色</option>
+                    </select>
+                </div>
+                <button id="resetProgressBtn" class="btn btn-danger">重置进度</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/sudoku-generator.js"></script>
+    <script src="js/game-logic.js"></script>
+    <script src="js/ui-manager.js"></script>
+    <script src="js/data-manager.js"></script>
+    <script src="js/main.js"></script>
+
+    <script>
+        // PWA安装提示 - 只在HTTPS或localhost环境下注册
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+            navigator.serviceWorker.register('sw.js').catch(error => {
+                console.log('SW registration failed: ', error);
+            });
+        }
+    </script>
+</body>
+</html>
