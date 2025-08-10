@@ -340,11 +340,42 @@ body {
     background: var(--danger-color) !important;
     color: white !important;
     font-weight: bold;
+    width: 100%;
+    margin-top: 20px;
+    padding: 15px !important;
+    border-radius: 8px;
+    font-size: 1.1em;
 }
 
 .back-btn-mobile:hover {
     background: #d32f2f !important;
     transform: scale(1.05);
+}
+
+/* 控制区域样式 */
+.level-select-controls,
+.settings-controls {
+    padding: 20px;
+    background: var(--surface);
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.settings-controls {
+    margin-top: 20px;
+    border-top: none;
+    padding-top: 0;
+}
+
+/* 确保关卡选择界面正确布局 */
+#levelSelect {
+    display: flex;
+    flex-direction: column;
+}
+
+#levelSelect .levels-grid {
+    flex: 1;
+    overflow-y: auto;
 }
 
 .level-info span:first-child {
