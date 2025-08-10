@@ -45,6 +45,7 @@ body {
 
 .screen.active {
     display: flex;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .screen.overlay {
@@ -345,6 +346,10 @@ body {
     padding: 15px !important;
     border-radius: 8px;
     font-size: 1.1em;
+    cursor: pointer;
+    border: none;
+    position: relative;
+    z-index: 10;
 }
 
 .back-btn-mobile:hover {
@@ -368,7 +373,7 @@ body {
 }
 
 /* 确保关卡选择界面正确布局 */
-#levelSelect {
+#levelSelect.active {
     display: flex;
     flex-direction: column;
 }
@@ -881,9 +886,6 @@ body.blue {
     50% { transform: scale(1.05); }
 }
 
-.screen.active {
-    animation: fadeIn 0.3s ease-out;
-}
 
 .level-btn:hover {
     animation: pulse 0.3s ease-in-out;
