@@ -7,6 +7,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="数独大师">
+    <meta name="msapplication-TileColor" content="#2196F3">
+    <meta name="msapplication-TileImage" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDE0NCAxNDQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNjgiIGZpbGw9IiMyMTk2RjMiLz48cmVjdCB4PSIzNiIgeT0iMzYiIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIgZmlsbD0id2hpdGUiIHJ4PSI0Ii8+PHRleHQgeD0iNzIiIHk9Ijc4IiBmaWxsPSIjMjE5NkYzIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuaVsDwvdGV4dD48L3N2Zz4=">
     <title>数独大师 - 100关挑战</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzIxOTZGMyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzE5NzZEMiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjkwIiBmaWxsPSJ1cmwoI2JnKSIvPjxyZWN0IHg9IjM2IiB5PSIzNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSI2IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuOTUpIi8+PHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgcng9IjYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+PHRleHQgeD0iOTYiIHk9IjIwIiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7mlbDni6zlpKflrp48L3RleHQ+PC9zdmc+">
@@ -79,7 +82,6 @@
         <!-- 游戏界面 -->
         <div id="game" class="screen">
             <div class="game-header">
-                <button class="back-btn" id="backToLevels">←</button>
                 <div class="level-info">
                     <span id="currentLevel">第1关</span>
                     <span id="difficultyType">标准9x9</span>
@@ -111,6 +113,7 @@
                     </div>
 
                     <div class="action-buttons">
+                        <button id="backToLevels" class="action-btn back-btn-mobile">返回</button>
                         <button id="eraseBtn" class="action-btn">擦除</button>
                         <button id="noteBtn" class="action-btn">笔记</button>
                         <button id="hintBtn" class="action-btn">提示</button>
