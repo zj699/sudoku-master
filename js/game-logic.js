@@ -187,6 +187,37 @@ class GameLogic {
         this.selectedNumber = number;
     }
 
+    // 检查在指定位置放置数字是否符合数独规则
+    isValidPlacement(row, col, number) {
+        // 检查行中是否已存在该数字
+        for (let c = 0; c < 9; c++) {
+            if (c !== col && this.playerGrid[row][c] === number) {
+                return {valid: false, reason: 'row', conflictCell: {row, col: c}};
+            }
+        }
+
+        // 检查列中是否已存在该数字
+        for (let r = 0; r < 9; r++) {
+            if (r !== row && this.playerGrid[r][col] === number) {
+                return {valid: false, reason: 'col', conflictCell: {row: r, col}};
+            }
+        }
+
+        // 检查3x3区域中是否已存在该数字
+        const startRow = Math.floor(row / 3) * 3;
+        const startCol = Math.floor(col / 3) * 3;
+        
+        for (let r = startRow; r < startRow + 3; r++) {
+            for (let c = startCol; c < startCol + 3; c++) {
+                if ((r !== row || c !== col) && this.playerGrid[r][c] === number) {
+                    return {valid: false, reason: 'box', conflictCell: {row: r, col: c}};
+                }
+            }
+        }
+
+        return {valid: true};
+    }
+
     // 在格子中放置数字
     placeNumber(row, col, number) {
         // 检查是否是给定数字的格子
@@ -199,43 +230,50 @@ class GameLogic {
             return this.toggleNote(row, col, number);
         }
 
+        // 检查数独规则
+        const validation = this.isValidPlacement(row, col, number);
+        if (!validation.valid) {
+            return {
+                success: false, 
+                reason: 'rule_violation',
+                violationType: validation.reason,
+                conflictCell: validation.conflictCell,
+                message: this.getRuleViolationMessage(validation.reason)
+            };
+        }
+
         // 清除该格子的笔记
         this.notes[row][col].clear();
 
-        // 检查是否是正确答案
-        const isCorrect = this.currentSolution[row][col] === number;
+        // 放置数字
+        this.playerGrid[row][col] = number;
         
-        if (isCorrect) {
-            this.playerGrid[row][col] = number;
-            
-            // 清除相关格子中的笔记
-            this.clearRelatedNotes(row, col, number);
-            
-            // 检查是否完成游戏
-            if (this.isGameComplete()) {
-                this.completeGame();
-                return {success: true, complete: true};
-            }
-            
-            return {success: true, correct: true};
-        } else {
-            this.mistakes++;
-            
-            // 暂时显示错误
-            this.playerGrid[row][col] = number;
-            
-            setTimeout(() => {
-                if (this.playerGrid[row][col] === number) {
-                    this.playerGrid[row][col] = 0;
-                }
-            }, 1000);
-            
-            if (this.mistakes >= this.maxMistakes) {
-                this.gameOver();
-                return {success: false, gameOver: true};
-            }
-            
-            return {success: false, mistake: true, mistakes: this.mistakes};
+        // 清除相关格子中的笔记
+        this.clearRelatedNotes(row, col, number);
+        
+        // 检查是否与正确解决方案匹配（仅用于提供反馈）
+        const isCorrectAnswer = this.currentSolution && this.currentSolution[row][col] === number;
+        
+        // 检查是否完成游戏
+        if (this.isGameComplete()) {
+            this.completeGame();
+            return {success: true, complete: true, correctAnswer: isCorrectAnswer};
+        }
+        
+        return {success: true, correctAnswer: isCorrectAnswer};
+    }
+
+    // 获取规则违反提示信息
+    getRuleViolationMessage(violationType) {
+        switch (violationType) {
+            case 'row':
+                return '该数字在同一行中已存在';
+            case 'col':
+                return '该数字在同一列中已存在';
+            case 'box':
+                return '该数字在同一个3x3区域中已存在';
+            default:
+                return '违反数独规则';
         }
     }
 
