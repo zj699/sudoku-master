@@ -409,10 +409,11 @@ body {
 }
 
 .sudoku-cell.selected {
-    background: #FFD54F !important;  /* 温和的黄色 */
-    color: var(--text-primary) !important;
-    border: 2px solid #FFC107;
+    background: #FF8F00 !important;  /* 深橙色背景 */
+    color: #FFFFFF !important;       /* 白色文字 */
+    border: 2px solid #FF6F00;      /* 更深的橙色边框 */
     font-weight: bold;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3); /* 内部白色轮廓 */
 }
 
 .sudoku-cell.given {
@@ -431,27 +432,33 @@ body {
     background: rgba(255, 193, 7, 0.3);
 }
 
-/* 简化高亮样式 - 统一使用淡黄色 */
+/* 高对比度高亮样式 - 使用深蓝色背景 */
 .sudoku-cell.highlighted {
-    background: rgba(255, 235, 59, 0.3) !important;
-}
-
-/* 给定数字被高亮时保持简洁 */
-.sudoku-cell.given.highlighted {
-    background: rgba(255, 235, 59, 0.4) !important;
-    color: var(--text-primary) !important;
+    background: #1565C0 !important;  /* 深蓝色背景 */
+    color: #FFFFFF !important;       /* 白色文字 */
     font-weight: bold;
 }
 
-/* 深色主题下的高亮 */
+/* 给定数字被高亮时 - 使用较浅的蓝色 */
+.sudoku-cell.given.highlighted {
+    background: #1976D2 !important;  /* 稍浅的蓝色背景 */
+    color: #FFFFFF !important;       /* 白色文字 */
+    font-weight: bold;
+    border: 1px solid #0D47A1;      /* 深蓝色边框增强区分 */
+}
+
+/* 深色主题下的高亮 - 使用更亮的蓝色 */
 body.dark .sudoku-cell.highlighted {
-    background: rgba(255, 235, 59, 0.2) !important;
+    background: #1976D2 !important;  /* 中等蓝色 */
+    color: #FFFFFF !important;
+    font-weight: bold;
 }
 
 body.dark .sudoku-cell.given.highlighted {
-    background: rgba(255, 235, 59, 0.3) !important;
-    color: var(--text-primary) !important;
+    background: #2196F3 !important;  /* 较亮的蓝色 */
+    color: #FFFFFF !important;
     font-weight: bold;
+    border: 1px solid #1565C0;
 }
 
 /* 预览样式 */
@@ -696,6 +703,15 @@ body.dark {
 body.dark .sudoku-cell.given {
     background: #2a2a2a;
     color: var(--text-primary);
+}
+
+/* 深色主题下的选中样式 */
+body.dark .sudoku-cell.selected {
+    background: #FF9800 !important;  /* 亮橙色背景 */
+    color: #000000 !important;       /* 黑色文字 */
+    border: 2px solid #F57C00;      /* 深橙色边框 */
+    font-weight: bold;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3); /* 内部黑色轮廓 */
 }
 
 /* 蓝色主题 */
