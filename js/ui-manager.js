@@ -176,12 +176,26 @@ class UIManager {
             lastTouchEnd = now;
         }, false);
 
-        // 防止页面滚动
+        // 更精确的触摸滚动控制
         document.addEventListener('touchmove', (e) => {
             if (this.currentScreen === 'game') {
-                e.preventDefault();
+                // 只阻止数独网格和数字键盘的滚动，允许游戏内容区域滚动
+                const target = e.target.closest('#sudokuGrid, .number-pad');
+                const gameContent = e.target.closest('.game-content');
+                
+                if (target && !gameContent) {
+                    e.preventDefault();
+                }
             }
         }, { passive: false });
+
+        // 确保游戏内容区域可以滚动
+        const gameContentElements = document.querySelectorAll('.game-content');
+        gameContentElements.forEach(element => {
+            element.addEventListener('touchmove', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+        });
     }
 
     // 键盘处理
@@ -206,6 +220,10 @@ class UIManager {
 
         // 其他快捷键
         switch (key) {
+            case 'Enter':
+                e.preventDefault();
+                this.placeNumber();
+                break;
             case 'Delete':
             case 'Backspace':
                 e.preventDefault();
@@ -328,7 +346,7 @@ class UIManager {
             levelBtn.className = 'level-btn';
             levelBtn.textContent = level;
 
-            // 设置状态
+            // 设置状态 - 所有关卡解锁
             if (completedLevels.includes(level)) {
                 levelBtn.classList.add('completed');
                 // 添加星星显示
@@ -339,15 +357,14 @@ class UIManager {
                 levelBtn.appendChild(starsEl);
             } else if (level === currentLevel) {
                 levelBtn.classList.add('current');
-            } else if (level > currentLevel) {
-                levelBtn.classList.add('locked');
-                levelBtn.disabled = true;
+            } else {
+                // 移除锁定状态，所有关卡都可选择
+                levelBtn.classList.add('available');
             }
 
             levelBtn.addEventListener('click', () => {
-                if (!levelBtn.disabled) {
-                    this.startLevel(level);
-                }
+                // 所有关卡都可点击，移除disabled检查
+                this.startLevel(level);
             });
 
             grid.appendChild(levelBtn);
@@ -444,9 +461,9 @@ class UIManager {
             this.updateCellSelection();
             this.updateHighlights();
             
-            // 如果有选择的数字，尝试放置
+            // 如果既有选择的格子又有选择的数字，提示用户可以放置
             if (this.game.selectedNumber > 0) {
-                this.placeNumber();
+                this.showPlacementHint();
             }
         }
         
@@ -455,17 +472,68 @@ class UIManager {
 
     // 选择数字
     selectNumber(number) {
+        // 如果点击的是已选中的数字，执行放置操作
+        if (this.game.selectedNumber === number && this.game.selectedCell.row >= 0) {
+            this.placeNumber();
+            return;
+        }
+        
         this.game.selectNumber(number);
         this.updateNumberPad();
+        this.updateHighlights();
         
-        // 如果有选择的格子，尝试放置数字
+        // 如果有选择的格子，提示用户可以放置
         if (this.game.selectedCell.row >= 0) {
-            this.placeNumber();
-        } else {
-            this.updateHighlights();
+            this.showPlacementHint();
         }
         
         this.playSound('click');
+    }
+
+    // 显示放置提示
+    showPlacementHint() {
+        // 在选中的格子上显示预览数字
+        const {row, col} = this.game.selectedCell;
+        const number = this.game.selectedNumber;
+        
+        if (row >= 0 && col >= 0 && number > 0) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (cell && this.game.currentPuzzle[row][col] === 0) {
+                // 检查是否违反规则
+                const validation = this.game.isValidPlacement(row, col, number);
+                if (validation.valid) {
+                    cell.classList.add('preview-valid');
+                    cell.setAttribute('data-preview', number);
+                } else {
+                    cell.classList.add('preview-invalid');
+                    cell.setAttribute('data-preview', number);
+                    // 高亮冲突的格子
+                    this.highlightConflictCell(validation.conflictCell);
+                }
+            }
+        }
+    }
+
+    // 清除放置预览
+    clearPlacementPreview() {
+        document.querySelectorAll('.sudoku-cell').forEach(cell => {
+            cell.classList.remove('preview-valid', 'preview-invalid');
+            cell.removeAttribute('data-preview');
+        });
+        
+        document.querySelectorAll('.conflict-highlight').forEach(cell => {
+            cell.classList.remove('conflict-highlight');
+        });
+    }
+
+    // 高亮冲突格子
+    highlightConflictCell(conflictCell) {
+        if (conflictCell) {
+            const cell = document.querySelector(`[data-row="${conflictCell.row}"][data-col="${conflictCell.col}"]`);
+            if (cell) {
+                cell.classList.add('conflict-highlight');
+            }
+        }
     }
 
     // 放置数字
@@ -475,6 +543,9 @@ class UIManager {
         
         if (row < 0 || col < 0 || number === 0) return;
 
+        // 清除预览效果
+        this.clearPlacementPreview();
+
         const result = this.game.placeNumber(row, col, number);
         
         if (result.success) {
@@ -482,19 +553,45 @@ class UIManager {
                 this.showLevelComplete(this.game.completeGame());
                 this.playSound('complete');
             } else {
-                this.playSound('success');
+                // 根据是否是正确答案给出不同反馈
+                if (result.correctAnswer) {
+                    this.playSound('success');
+                } else {
+                    this.playSound('click'); // 中性音效，表示放置成功但不一定是正确答案
+                }
             }
-        } else if (result.mistake) {
-            this.showMistake(row, col);
-            this.updateMistakeCount();
+            
+            // 清除选择状态，允许用户继续操作
+            this.game.selectedNumber = 0;
+            this.updateNumberPad();
+        } else if (result.reason === 'rule_violation') {
+            // 显示规则违反提示
+            this.showRuleViolation(result);
             this.playSound('error');
-        } else if (result.gameOver) {
-            this.showGameOver();
+        } else if (result.reason === 'given') {
+            this.showNotification('不能修改题目给定的数字', 'error');
             this.playSound('error');
         }
         
         this.updateGrid();
         this.updateHighlights();
+    }
+
+    // 显示规则违反提示
+    showRuleViolation(result) {
+        // 显示错误消息
+        this.showNotification(result.message, 'error');
+        
+        // 高亮冲突的格子
+        if (result.conflictCell) {
+            const conflictCell = document.querySelector(`[data-row="${result.conflictCell.row}"][data-col="${result.conflictCell.col}"]`);
+            if (conflictCell) {
+                conflictCell.classList.add('conflict-highlight');
+                setTimeout(() => {
+                    conflictCell.classList.remove('conflict-highlight');
+                }, 2000);
+            }
+        }
     }
 
     // 切换笔记模式
@@ -626,15 +723,22 @@ class UIManager {
 
     // 更新格子选择状态
     updateCellSelection() {
+        // 清除所有选择状态和预览
         document.querySelectorAll('.sudoku-cell').forEach(cell => {
             cell.classList.remove('selected');
         });
+        this.clearPlacementPreview();
         
         const {row, col} = this.game.selectedCell;
         if (row >= 0 && col >= 0) {
             const selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
             if (selectedCell) {
                 selectedCell.classList.add('selected');
+                
+                // 如果有选中的数字，显示预览
+                if (this.game.selectedNumber > 0) {
+                    this.showPlacementHint();
+                }
             }
         }
     }
