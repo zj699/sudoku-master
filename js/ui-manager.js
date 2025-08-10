@@ -23,14 +23,25 @@ class UIManager {
 
     // 初始化UI
     initializeUI() {
+        console.log('初始化UI开始');
         this.bindEvents();
         this.showScreen('loading');
         
         // 模拟加载时间
         setTimeout(() => {
+            console.log('加载完成，切换到菜单');
             this.showScreen('menu');
             this.updateMenuStats();
-        }, 2000);
+        }, 1000); // 减少加载时间到1秒
+        
+        // 立即确保菜单是默认状态（防止其他代码干扰）
+        setTimeout(() => {
+            if (this.currentScreen !== 'menu') {
+                console.log('强制切换到菜单, 当前屏幕:', this.currentScreen);
+                this.showScreen('menu');
+                this.updateMenuStats();
+            }
+        }, 1500);
     }
 
     // 绑定事件
@@ -54,14 +65,24 @@ class UIManager {
             this.showAchievements();
         });
 
-        // 返回按钮
-        document.getElementById('backToMenu')?.addEventListener('click', () => {
-            this.showScreen('menu');
-            this.updateMenuStats();
+        // 返回按钮 - 使用事件委托确保动态添加的按钮也能工作
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'backToMenu') {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('返回菜单按钮点击, 当前屏幕:', this.currentScreen);
+                this.showScreen('menu');
+                this.updateMenuStats();
+            }
         });
 
-        document.getElementById('backToMenuFromSettings')?.addEventListener('click', () => {
-            this.showScreen('menu');
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'backToMenuFromSettings') {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('设置返回菜单按钮点击, 当前屏幕:', this.currentScreen);
+                this.showScreen('menu');
+            }
         });
 
         document.getElementById('backToLevels')?.addEventListener('click', () => {
@@ -274,6 +295,8 @@ class UIManager {
 
     // 显示屏幕
     showScreen(screenName) {
+        console.log(`切换屏幕: ${this.currentScreen} -> ${screenName}`);
+        
         // 隐藏所有屏幕
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
@@ -284,6 +307,18 @@ class UIManager {
         if (targetScreen) {
             targetScreen.classList.add('active');
             this.currentScreen = screenName;
+            console.log(`屏幕切换成功: ${screenName}`);
+            
+            // 调试：检查active的screen
+            setTimeout(() => {
+                const activeScreens = document.querySelectorAll('.screen.active');
+                console.log(`当前active的屏幕数量: ${activeScreens.length}`);
+                activeScreens.forEach(screen => {
+                    console.log(`Active屏幕: ${screen.id}, display: ${getComputedStyle(screen).display}`);
+                });
+            }, 100);
+        } else {
+            console.error(`找不到目标屏幕: ${screenName}`);
         }
 
         this.playSound('click');
