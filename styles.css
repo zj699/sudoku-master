@@ -332,6 +332,19 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex: 1;
+}
+
+/* 移动端返回按钮样式 */
+.back-btn-mobile {
+    background: var(--danger-color) !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.back-btn-mobile:hover {
+    background: #d32f2f !important;
+    transform: scale(1.05);
 }
 
 .level-info span:first-child {
@@ -556,8 +569,15 @@ body.dark .sudoku-cell.given.highlighted {
 
 .action-buttons {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
     gap: 10px;
+}
+
+.action-buttons .back-btn-mobile {
+    grid-column: 1 / -1; /* 占满整行 */
+    margin-bottom: 8px;
+    order: -1; /* 确保在最前面 */
 }
 
 .action-btn {
@@ -732,6 +752,13 @@ body.blue {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
+    
+    /* 移动端返回按钮在小屏幕上更突出 */
+    .back-btn-mobile {
+        font-size: 1.1em !important;
+        padding: 15px !important;
+        border-radius: 8px !important;
+    }
 
     .modal {
         width: 95%;
@@ -780,6 +807,14 @@ body.blue {
 
     .action-buttons {
         grid-template-columns: 1fr 1fr;
+    }
+    
+    /* 极小屏幕下返回按钮优化 */
+    .back-btn-mobile {
+        font-size: 1.2em !important;
+        padding: 18px !important;
+        font-weight: bold !important;
+        box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3) !important;
     }
 }
 
