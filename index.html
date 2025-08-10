@@ -63,7 +63,6 @@
         <!-- 关卡选择界面 -->
         <div id="levelSelect" class="screen">
             <div class="header">
-                <button class="back-btn" id="backToMenu">←</button>
                 <h2>选择关卡</h2>
             </div>
             
@@ -76,6 +75,10 @@
 
             <div class="levels-grid" id="levelsGrid">
                 <!-- 关卡按钮将通过JS生成 -->
+            </div>
+            
+            <div class="level-select-controls">
+                <button id="backToMenu" class="action-btn back-btn-mobile">返回菜单</button>
             </div>
         </div>
 
@@ -159,7 +162,6 @@
         <!-- 设置界面 -->
         <div id="settings" class="screen">
             <div class="header">
-                <button class="back-btn" id="backToMenuFromSettings">←</button>
                 <h2>设置</h2>
             </div>
             
@@ -185,6 +187,10 @@
                     </select>
                 </div>
                 <button id="resetProgressBtn" class="btn btn-danger">重置进度</button>
+                
+                <div class="settings-controls">
+                    <button id="backToMenuFromSettings" class="action-btn back-btn-mobile">返回菜单</button>
+                </div>
             </div>
         </div>
     </div>
