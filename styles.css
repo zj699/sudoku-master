@@ -40,6 +40,7 @@ body {
     flex-direction: column;
     background: var(--background);
     z-index: 1;
+    overflow: hidden; /* 防止整个屏幕滚动 */
 }
 
 .screen.active {
@@ -301,6 +302,12 @@ body {
     cursor: not-allowed;
 }
 
+.level-btn.available {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
 .level-btn .stars {
     position: absolute;
     bottom: 2px;
@@ -351,6 +358,8 @@ body {
     align-items: center;
     padding: 20px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* iOS平滑滚动 */
+    min-height: 0; /* 允许flex子项收缩 */
 }
 
 .sudoku-container {
@@ -387,8 +396,10 @@ body {
 }
 
 .sudoku-cell.selected {
-    background: var(--primary-color);
-    color: white;
+    background: #FFD54F !important;  /* 温和的黄色 */
+    color: var(--text-primary) !important;
+    border: 2px solid #FFC107;
+    font-weight: bold;
 }
 
 .sudoku-cell.given {
@@ -407,8 +418,74 @@ body {
     background: rgba(255, 193, 7, 0.3);
 }
 
+/* 简化高亮样式 - 统一使用淡黄色 */
 .sudoku-cell.highlighted {
-    background: rgba(33, 150, 243, 0.2);
+    background: rgba(255, 235, 59, 0.3) !important;
+}
+
+/* 给定数字被高亮时保持简洁 */
+.sudoku-cell.given.highlighted {
+    background: rgba(255, 235, 59, 0.4) !important;
+    color: var(--text-primary) !important;
+    font-weight: bold;
+}
+
+/* 深色主题下的高亮 */
+body.dark .sudoku-cell.highlighted {
+    background: rgba(255, 235, 59, 0.2) !important;
+}
+
+body.dark .sudoku-cell.given.highlighted {
+    background: rgba(255, 235, 59, 0.3) !important;
+    color: var(--text-primary) !important;
+    font-weight: bold;
+}
+
+/* 预览样式 */
+.sudoku-cell.preview-valid {
+    background: rgba(76, 175, 80, 0.2) !important;
+    border: 2px solid var(--success-color);
+}
+
+.sudoku-cell.preview-invalid {
+    background: rgba(244, 67, 54, 0.2) !important;
+    border: 2px solid var(--danger-color);
+}
+
+.sudoku-cell[data-preview]:before {
+    content: attr(data-preview);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.sudoku-cell.preview-valid[data-preview]:before {
+    color: var(--success-color);
+}
+
+.sudoku-cell.preview-invalid[data-preview]:before {
+    color: var(--danger-color);
+}
+
+/* 冲突高亮 */
+.sudoku-cell.conflict-highlight {
+    background: rgba(255, 152, 0, 0.3) !important;
+    border: 2px solid var(--warning-color);
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .sudoku-cell .notes {
@@ -675,11 +752,26 @@ body.blue {
 @media (max-width: 480px) {
     .game-content {
         padding: 10px;
+        gap: 15px;
+        /* 确保移动端可滚动 */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .sudoku-cell {
         font-size: 0.9em;
         min-height: 30px;
+    }
+    
+    /* 移动端滚动优化 */
+    .sudoku-container {
+        margin-bottom: 15px;
+        flex-shrink: 0;
+    }
+    
+    .game-controls {
+        flex-shrink: 0;
+        width: 100%;
     }
 
     .number-pad {
