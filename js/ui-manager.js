@@ -31,7 +31,9 @@ class UIManager {
         setTimeout(() => {
             console.log('加载完成，切换到菜单');
             this.showScreen('menu');
-            this.updateMenuStats();
+            this.updateMenuStats().catch(err => {
+                console.error('更新菜单统计失败:', err);
+            });
         }, 1000); // 减少加载时间到1秒
         
         // 立即确保菜单是默认状态（防止其他代码干扰）
@@ -39,7 +41,9 @@ class UIManager {
             if (this.currentScreen !== 'menu') {
                 console.log('强制切换到菜单, 当前屏幕:', this.currentScreen);
                 this.showScreen('menu');
-                this.updateMenuStats();
+                this.updateMenuStats().catch(err => {
+                    console.error('更新菜单统计失败:', err);
+                });
             }
         }, 1500);
     }
@@ -92,7 +96,9 @@ class UIManager {
                 e.stopPropagation();
                 console.log('返回菜单按钮点击, 当前屏幕:', this.currentScreen);
                 this.showScreen('menu');
-                this.updateMenuStats();
+                this.updateMenuStats().catch(err => {
+                    console.error('更新菜单统计失败:', err);
+                });
             }
         });
 
@@ -150,7 +156,9 @@ class UIManager {
 
         document.getElementById('backToMenuBtn')?.addEventListener('click', () => {
             this.showScreen('menu');
-            this.updateMenuStats();
+            this.updateMenuStats().catch(err => {
+                console.error('更新菜单统计失败:', err);
+            });
         });
 
         // 数字按钮
@@ -190,9 +198,44 @@ class UIManager {
             this.saveSettings();
         });
 
-        document.getElementById('resetProgressBtn')?.addEventListener('click', () => {
-            if (confirm('确定要重置所有进度吗？此操作不可撤销。')) {
-                this.resetProgress();
+        document.getElementById('resetProgressBtn')?.addEventListener('click', async () => {
+            // 第一次确认
+            const firstConfirm = confirm(`⚠️ 确定要重置所有进度吗？
+
+这将清除：
+• 所有关卡的完成记录
+• 游戏统计数据  
+• 用户设置
+• 成就记录
+• 游戏历史
+
+此操作不可撤销！`);
+            
+            if (!firstConfirm) {
+                return;
+            }
+            
+            // 第二次确认（更严格）
+            const secondConfirm = confirm(`🔥 最后确认！
+
+您即将删除所有游戏数据！
+
+如果您真的要继续，请点击"确定"。
+如果您不确定，请点击"取消"。
+
+这是您的最后机会！`);
+            
+            if (secondConfirm) {
+                try {
+                    // 显示处理中的提示
+                    this.showNotification('正在重置进度，请稍等...', 'info');
+                    await this.resetProgress();
+                } catch (error) {
+                    console.error('重置进度失败:', error);
+                    this.showNotification('重置失败: ' + error.message, 'error');
+                }
+            } else {
+                this.showNotification('重置操作已取消', 'info');
             }
         });
 
@@ -346,7 +389,7 @@ class UIManager {
 
     // 更新菜单统计
     async updateMenuStats() {
-        const stats = this.game.getStatistics();
+        const stats = await this.game.getStatistics();
         const progress = this.game.loadProgress();
         
         // 更新进度条
@@ -387,15 +430,17 @@ class UIManager {
     // 显示关卡选择
     showLevelSelect() {
         this.showScreen('levelSelect');
-        this.generateLevelGrid();
+        this.generateLevelGrid().catch(err => {
+            console.error('生成关卡网格失败:', err);
+        });
     }
 
     // 生成关卡网格
-    generateLevelGrid() {
+    async generateLevelGrid() {
         const grid = document.getElementById('levelsGrid');
         if (!grid) return;
 
-        const completedLevels = this.game.getCompletedLevels();
+        const completedLevels = await this.game.getCompletedLevels();
         const currentLevel = this.game.currentLevel;
 
         grid.innerHTML = '';
@@ -457,7 +502,9 @@ class UIManager {
         });
         
         document.querySelector(`[data-difficulty="${difficulty}"]`).classList.add('active');
-        this.generateLevelGrid();
+        this.generateLevelGrid().catch(err => {
+            console.error('生成关卡网格失败:', err);
+        });
     }
 
     // 开始关卡
@@ -1139,7 +1186,9 @@ class UIManager {
         this.showNotification('恭喜完成所有100关！您是真正的数独大师！', 'success');
         setTimeout(() => {
             this.showScreen('menu');
-            this.updateMenuStats();
+            this.updateMenuStats().catch(err => {
+                console.error('更新菜单统计失败:', err);
+            });
         }, 3000);
     }
 
@@ -1252,19 +1301,59 @@ class UIManager {
     }
 
     // 重置进度
-    resetProgress() {
-        localStorage.removeItem('sudoku_progress');
-        this.game.currentLevel = 1;
-        this.game.gameStats = {
-            totalTime: 0,
-            gamesPlayed: 0,
-            gamesWon: 0,
-            bestTime: Infinity,
-            currentStreak: 0,
-            maxStreak: 0
-        };
-        this.updateMenuStats();
-        this.showNotification('进度已重置', 'info');
+    async resetProgress() {
+        try {
+            // 清除localStorage
+            localStorage.removeItem('sudoku_progress');
+            
+            // 清除IndexedDB中的所有数据
+            if (window.sudokuGame && window.sudokuGame.dataManager) {
+                const result = await window.sudokuGame.dataManager.clearAllData();
+                console.log('IndexedDB数据清除结果:', result);
+            }
+            
+            // 重置游戏状态
+            this.game.currentLevel = 1;
+            this.game.gameStats = {
+                totalTime: 0,
+                gamesPlayed: 0,
+                gamesWon: 0,
+                bestTime: Infinity,
+                currentStreak: 0,
+                maxStreak: 0
+            };
+            
+            // 重置UI设置为默认值
+            this.settings = {
+                soundEnabled: true,
+                autoCheckErrors: true,
+                highlightNumbers: true,
+                theme: 'light'
+            };
+            
+            // 保存默认设置
+            this.saveSettings();
+            
+            // 应用默认主题
+            this.applyTheme('light');
+            
+            // 更新设置界面显示
+            this.updateSettingsUI();
+            
+            // 清除当前游戏状态（如果正在游戏中）
+            if (this.currentScreen === 'game') {
+                this.showScreen('menu');
+            }
+            
+            // 更新UI显示
+            await this.updateMenuStats();
+            
+            this.showNotification('✓ 所有进度已成功重置', 'success');
+            
+        } catch (error) {
+            console.error('重置进度失败:', error);
+            this.showNotification('⚠ 重置进度时出现错误: ' + error.message, 'error');
+        }
     }
 }
 
