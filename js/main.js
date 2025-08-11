@@ -38,6 +38,9 @@ class SudokuGame {
             // 设置性能监控
             this.setupPerformanceMonitoring();
             
+            // 启动自动保存
+            this.startAutoSave();
+            
             this.isInitialized = true;
             console.log('数独游戏初始化完成');
             
@@ -76,7 +79,7 @@ class SudokuGame {
                 };
             }
 
-            // 加载已完成的关卡
+            // 加载已完成的关卡，设置当前可玩关卡
             const completedLevels = await this.dataManager.getAllCompletedLevels();
             if (completedLevels && completedLevels.length > 0) {
                 const maxLevel = Math.max(...completedLevels.map(l => l.level));
@@ -108,6 +111,33 @@ class SudokuGame {
             
         } catch (error) {
             console.error('保存游戏数据失败:', error);
+        }
+    }
+
+    // 启动自动保存游戏状态
+    startAutoSave() {
+        // 每30秒自动保存一次游戏状态（如果游戏在进行中）
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+        }
+
+        this.autoSaveInterval = setInterval(async () => {
+            if (this.uiManager && this.uiManager.currentScreen === 'game' && this.gameLogic && this.gameLogic.playerGrid) {
+                try {
+                    await this.gameLogic.saveCurrentState();
+                    console.log('自动保存完成');
+                } catch (error) {
+                    console.error('自动保存失败:', error);
+                }
+            }
+        }, 30000); // 30秒
+    }
+
+    // 停止自动保存
+    stopAutoSave() {
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+            this.autoSaveInterval = null;
         }
     }
 
@@ -474,6 +504,9 @@ class SudokuGame {
 
     // 清理和销毁
     destroy() {
+        // 停止自动保存
+        this.stopAutoSave();
+
         // 保存数据
         this.saveGameData();
 
