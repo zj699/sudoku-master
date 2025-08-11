@@ -491,7 +491,9 @@ class SudokuGame {
             
             // 刷新UI
             if (this.uiManager) {
-                this.uiManager.updateMenuStats();
+                this.uiManager.updateMenuStats().catch(err => {
+                    console.error('更新菜单统计失败:', err);
+                });
             }
 
             console.log('游戏数据导入完成');
