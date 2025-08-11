@@ -85,6 +85,250 @@ class DataManager {
         });
     }
 
+    // 保存当前游戏状态（用于继续游戏功能）
+    // 保存特定关卡的游戏状态
+    async saveLevelState(level, gameState) {
+        if (!this.db) await this.initDB();
+        
+        const levelKey = `level_${level}_state`;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['gameProgress'], 'readwrite');
+            const store = transaction.objectStore('gameProgress');
+
+            const stateData = {
+                id: levelKey, // 🔥 关键修复：使用关卡特定的ID
+                level: level,
+                playerGrid: gameState.playerGrid,
+                notes: gameState.notes ? this.serializeNotes(gameState.notes) : null,
+                mistakes: gameState.mistakes,
+                hintsUsed: gameState.hintsUsed,
+                currentTime: gameState.currentTime,
+                startTime: gameState.startTime,
+                selectedCell: gameState.selectedCell,
+                selectedNumber: gameState.selectedNumber,
+                isNoteMode: gameState.isNoteMode,
+                puzzle: gameState.puzzle,
+                solution: gameState.solution,
+                inProgress: true,
+                savedAt: new Date().toISOString()
+            };
+
+            const request = store.put(stateData);
+
+            request.onsuccess = () => {
+                console.log(`✓ 关卡${level}状态已保存`);
+                resolve(stateData);
+            };
+
+            request.onerror = () => {
+                reject(request.error);
+            };
+        });
+    }
+
+    // 向后兼容的方法
+    async saveCurrentGameState(gameState) {
+        return this.saveLevelState(gameState.level, gameState);
+    }
+
+    // 获取特定关卡的游戏状态
+    async getLevelState(level) {
+        if (!this.db) await this.initDB();
+        
+        const levelKey = `level_${level}_state`;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['gameProgress'], 'readonly');
+            const store = transaction.objectStore('gameProgress');
+
+            const request = store.get(levelKey);
+
+            request.onsuccess = () => {
+                const result = request.result;
+                if (result && result.inProgress) {
+                    // 反序列化笔记
+                    if (result.notes) {
+                        result.notes = this.deserializeNotes(result.notes);
+                    }
+                    console.log(`✓ 找到关卡${level}的保存状态`);
+                    resolve(result);
+                } else {
+                    console.log(`关卡${level}没有保存状态`);
+                    resolve(null);
+                }
+            };
+
+            request.onerror = () => {
+                reject(request.error);
+            };
+        });
+    }
+
+    // 向后兼容：获取当前游戏状态（现在查找最新的有进度关卡）
+    async getCurrentGameState() {
+        if (!this.db) await this.initDB();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['gameProgress'], 'readonly');
+            const store = transaction.objectStore('gameProgress');
+
+            // 获取所有记录
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const results = request.result;
+                
+                // 找到所有有进度的关卡状态
+                const levelStates = results.filter(item => 
+                    item.id && item.id.startsWith('level_') && 
+                    item.id.endsWith('_state') && 
+                    item.inProgress
+                );
+
+                if (levelStates.length > 0) {
+                    // 按最后保存时间排序，返回最新的
+                    levelStates.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+                    const latestState = levelStates[0];
+                    
+                    // 反序列化笔记
+                    if (latestState.notes) {
+                        latestState.notes = this.deserializeNotes(latestState.notes);
+                    }
+                    
+                    console.log(`找到最新的有进度关卡：关卡${latestState.level}`);
+                    resolve(latestState);
+                } else {
+                    console.log('没有找到任何有进度的关卡');
+                    resolve(null);
+                }
+            };
+
+            request.onerror = () => {
+                reject(request.error);
+            };
+        });
+    }
+
+    // 清除特定关卡的游戏状态
+    async clearLevelState(level) {
+        if (!this.db) await this.initDB();
+        
+        const levelKey = `level_${level}_state`;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['gameProgress'], 'readwrite');
+            const store = transaction.objectStore('gameProgress');
+
+            const request = store.delete(levelKey);
+
+            request.onsuccess = () => {
+                console.log(`✓ 关卡${level}状态已清除`);
+                resolve();
+            };
+
+            request.onerror = () => {
+                reject(request.error);
+            };
+        });
+    }
+
+    // 向后兼容：清除当前游戏状态（现在清除所有关卡状态）
+    async clearCurrentGameState() {
+        if (!this.db) await this.initDB();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['gameProgress'], 'readwrite');
+            const store = transaction.objectStore('gameProgress');
+
+            // 获取所有记录
+            const getAllRequest = store.getAll();
+
+            getAllRequest.onsuccess = () => {
+                const results = getAllRequest.result;
+                
+                // 找到所有关卡状态记录
+                const levelStateKeys = results
+                    .filter(item => item.id && item.id.startsWith('level_') && item.id.endsWith('_state'))
+                    .map(item => item.id);
+
+                if (levelStateKeys.length === 0) {
+                    resolve();
+                    return;
+                }
+
+                let deletedCount = 0;
+                const totalToDelete = levelStateKeys.length;
+
+                levelStateKeys.forEach(key => {
+                    const deleteRequest = store.delete(key);
+                    
+                    deleteRequest.onsuccess = () => {
+                        deletedCount++;
+                        if (deletedCount === totalToDelete) {
+                            console.log(`✓ 已清除${totalToDelete}个关卡的保存状态`);
+                            resolve();
+                        }
+                    };
+                    
+                    deleteRequest.onerror = () => {
+                        reject(deleteRequest.error);
+                    };
+                });
+            };
+
+            getAllRequest.onerror = () => {
+                reject(getAllRequest.error);
+            };
+        });
+    }
+
+    // 序列化笔记（将Set转换为Array）
+    serializeNotes(notes) {
+        try {
+            if (!notes || !Array.isArray(notes)) {
+                console.warn('笔记数据格式不正确，使用默认空数据');
+                return Array(9).fill().map(() => Array(9).fill([]));
+            }
+            return notes.map(row => {
+                if (!Array.isArray(row)) return Array(9).fill([]);
+                return row.map(cell => {
+                    if (cell && typeof cell.values === 'function') {
+                        return Array.from(cell); // Set 类型
+                    } else if (Array.isArray(cell)) {
+                        return cell; // 已经是数组
+                    }
+                    return [];
+                });
+            });
+        } catch (error) {
+            console.error('序列化笔记失败:', error);
+            return Array(9).fill().map(() => Array(9).fill([]));
+        }
+    }
+
+    // 反序列化笔记（将Array转换为Set）
+    deserializeNotes(serializedNotes) {
+        try {
+            if (!serializedNotes || !Array.isArray(serializedNotes)) {
+                console.warn('反序列化笔记数据格式不正确，使用默认空数据');
+                return Array(9).fill().map(() => Array(9).fill().map(() => new Set()));
+            }
+            return serializedNotes.map(row => {
+                if (!Array.isArray(row)) return Array(9).fill().map(() => new Set());
+                return row.map(cell => {
+                    if (Array.isArray(cell)) {
+                        return new Set(cell);
+                    }
+                    return new Set();
+                });
+            });
+        } catch (error) {
+            console.error('反序列化笔记失败:', error);
+            return Array(9).fill().map(() => Array(9).fill().map(() => new Set()));
+        }
+    }
+
     // 获取游戏进度
     async getGameProgress(level) {
         if (!this.db) await this.initDB();
