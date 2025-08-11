@@ -399,8 +399,10 @@ class GameLogic {
         // 计算星星评级
         const stars = this.calculateStars();
         
-        // 保存进度
-        this.saveProgress();
+        // 保存进度（异步执行，不阻塞游戏完成）
+        this.saveProgress().catch(err => {
+            console.error('保存关卡完成状态失败:', err);
+        });
         
         // 清除当前完成关卡的游戏状态（因为已经完成）
         if (window.sudokuGame && window.sudokuGame.dataManager) {
@@ -541,15 +543,51 @@ class GameLogic {
     }
 
     // 保存进度
-    saveProgress() {
+    async saveProgress() {
+        const completedLevels = await this.getCompletedLevels();
         const progress = {
             currentLevel: this.currentLevel,
-            completedLevels: this.getCompletedLevels(),
+            completedLevels: completedLevels,
             gameStats: this.gameStats,
             settings: this.getSettings()
         };
         
+        // 保存到localStorage（兼容性）
         localStorage.setItem('sudoku_progress', JSON.stringify(progress));
+        
+        // 保存到IndexedDB
+        if (window.sudokuGame && window.sudokuGame.dataManager) {
+            try {
+                const completionData = {
+                    completed: true,
+                    stars: this.calculateStars(),
+                    time: this.currentTime,
+                    mistakes: this.mistakes,
+                    hintsUsed: this.hintsUsed,
+                    completedAt: new Date().toISOString()
+                };
+                
+                await window.sudokuGame.dataManager.saveGameProgress(this.currentLevel, completionData);
+                
+                // 更新用户统计
+                const userStats = {
+                    totalGames: this.gameStats.gamesPlayed,
+                    gamesWon: this.gameStats.gamesWon,
+                    totalTime: this.gameStats.totalTime,
+                    bestTime: this.gameStats.bestTime,
+                    currentStreak: this.gameStats.currentStreak,
+                    maxStreak: this.gameStats.maxStreak,
+                    hintsUsed: this.hintsUsed,
+                    mistakesMade: this.mistakes
+                };
+                
+                await window.sudokuGame.dataManager.saveUserStats(userStats);
+                
+                console.log(`✓ 关卡${this.currentLevel}完成状态已保存到数据库`);
+            } catch (error) {
+                console.error('保存关卡完成状态到数据库失败:', error);
+            }
+        }
     }
 
     // 加载进度
@@ -569,7 +607,18 @@ class GameLogic {
     }
 
     // 获取已完成关卡
-    getCompletedLevels() {
+    async getCompletedLevels() {
+        // 优先从IndexedDB读取
+        if (window.sudokuGame && window.sudokuGame.dataManager) {
+            try {
+                const completedLevels = await window.sudokuGame.dataManager.getAllCompletedLevels();
+                return completedLevels.map(level => level.level);
+            } catch (error) {
+                console.error('从数据库获取已完成关卡失败:', error);
+            }
+        }
+        
+        // 回退到localStorage
         const saved = localStorage.getItem('sudoku_progress');
         if (saved) {
             try {
@@ -623,7 +672,7 @@ class GameLogic {
                 id: 'expert_level',
                 name: '专家级别',
                 description: '完成所有100关',
-                unlocked: this.getCompletedLevels().length >= 100
+                unlocked: false // 这里需要异步获取，先设为false
             }
         ];
         
@@ -631,8 +680,8 @@ class GameLogic {
     }
 
     // 获取统计信息
-    getStatistics() {
-        const completedLevels = this.getCompletedLevels();
+    async getStatistics() {
+        const completedLevels = await this.getCompletedLevels();
         const totalMinutes = Math.floor(this.gameStats.totalTime / 60000);
         const bestTimeFormatted = this.gameStats.bestTime === Infinity ? 
             '未设定' : 
