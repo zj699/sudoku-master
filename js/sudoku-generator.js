@@ -2,6 +2,25 @@ class SudokuGenerator {
     constructor() {
         this.grid = Array(9).fill().map(() => Array(9).fill(0));
         this.solution = Array(9).fill().map(() => Array(9).fill(0));
+        this.seed = 1;
+        this.seedRandom = this.seedRandom.bind(this);
+    }
+
+    // 基于种子的伪随机数生成器
+    setSeed(seed) {
+        this.seed = seed % 2147483647;
+        if (this.seed <= 0) this.seed += 2147483646;
+    }
+
+    // 生成0-1之间的伪随机数
+    seedRandom() {
+        this.seed = this.seed * 16807 % 2147483647;
+        return (this.seed - 1) / 2147483646;
+    }
+
+    // 基于种子的随机整数生成
+    seedRandomInt(min, max) {
+        return Math.floor(this.seedRandom() * (max - min + 1)) + min;
     }
 
     // 生成完整的数独解决方案
@@ -71,10 +90,10 @@ class SudokuGenerator {
         return true;
     }
 
-    // 打乱数组
+    // 打乱数组（使用种子）
     shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = Math.floor(this.seedRandom() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
@@ -84,6 +103,10 @@ class SudokuGenerator {
     generatePuzzle(level) {
         try {
             console.log(`开始生成第${level}关数独...`);
+            
+            // 🔥 关键修复：使用关卡号作为种子，确保同一关卡总是生成相同题目
+            this.setSeed(level * 12345 + 67890); // 使用固定算法生成种子
+            console.log(`关卡${level}使用种子: ${this.seed}`);
             
             // 生成完整解决方案
             const solutionGenerated = this.generateSolution();
@@ -153,6 +176,9 @@ class SudokuGenerator {
     getFallbackPuzzle(level) {
         console.log('使用备用数独');
         
+        // 🔥 确保备用数独也使用相同种子
+        this.setSeed(level * 12345 + 67890);
+        
         const solution = [
             [5,3,4,6,7,8,9,1,2],
             [6,7,2,1,9,5,3,4,8],
@@ -167,8 +193,8 @@ class SudokuGenerator {
         
         const puzzle = solution.map(row => [...row]);
         
-        // 根据关卡移除不同数量的数字
-        const removeCount = Math.min(30 + level, 50);
+        // 根据关卡移除不同数量的数字（基于种子确定性移除）
+        const removeCount = Math.min(30 + Math.floor(level/10), 50);
         const positions = [];
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
@@ -176,7 +202,7 @@ class SudokuGenerator {
             }
         }
         
-        this.shuffle(positions);
+        this.shuffle(positions); // 现在使用种子随机
         for (let i = 0; i < removeCount && i < positions.length; i++) {
             const [r, c] = positions[i];
             puzzle[r][c] = 0;
@@ -465,8 +491,8 @@ class SudokuGenerator {
         
         if (emptyCells.length === 0) return null;
         
-        // 随机选择一个空格作为提示
-        const randomIndex = Math.floor(Math.random() * emptyCells.length);
+        // 选择一个空格作为提示（使用确定性选择，不使用随机）
+        const randomIndex = Math.floor((emptyCells.length * 0.382) % emptyCells.length); // 使用黄金比例，更确定性
         const [row, col] = emptyCells[randomIndex];
         
         return {
