@@ -189,7 +189,17 @@
                         <option value="blue">蓝色</option>
                     </select>
                 </div>
-                <button id="resetProgressBtn" class="btn btn-danger">重置进度</button>
+                
+                <!-- 危险操作区域 -->
+                <div class="danger-zone" style="margin-top: 30px; padding: 20px; background: rgba(244, 67, 54, 0.1); border: 1px solid rgba(244, 67, 54, 0.3); border-radius: 8px;">
+                    <h4 style="color: #f44336; margin-bottom: 10px;">⚠️ 危险操作</h4>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                        重置将清除所有游戏进度、统计数据和设置，此操作无法撤销。
+                    </p>
+                    <button id="resetProgressBtn" class="btn btn-danger" style="background: #f44336;">
+                        🗑️ 重置所有进度
+                    </button>
+                </div>
                 
                 <div class="settings-controls">
                     <button id="backToMenuFromSettings" class="action-btn back-btn-mobile">返回菜单</button>
