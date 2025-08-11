@@ -47,10 +47,30 @@ class UIManager {
     // 绑定事件
     bindEvents() {
         // 主菜单按钮
-        document.getElementById('continueBtn')?.addEventListener('click', () => {
-            const progress = this.game.loadProgress();
-            const level = progress ? progress.currentLevel : 1;
-            this.startLevel(level);
+        document.getElementById('continueBtn')?.addEventListener('click', async () => {
+            try {
+                // 首先尝试加载保存的游戏状态
+                const hasSavedState = await this.game.hasSavedState();
+                if (hasSavedState) {
+                    console.log('发现保存的游戏状态，继续游戏');
+                    const loaded = await this.game.loadCurrentState();
+                    if (loaded) {
+                        this.showScreen('game');
+                        this.updateGameDisplay();
+                        return;
+                    }
+                }
+                
+                // 如果没有保存状态，则开始下一个未完成的关卡
+                const progress = this.game.loadProgress();
+                const level = progress ? progress.currentLevel : 1;
+                console.log('没有保存状态，开始关卡', level);
+                this.startLevel(level);
+            } catch (error) {
+                console.error('继续游戏失败:', error);
+                // 出错时不要自动开始关卡，让用户手动选择
+                alert('继续游戏失败，请手动选择关卡。\n错误：' + error.message);
+            }
         });
 
         document.getElementById('levelSelectBtn')?.addEventListener('click', () => {
@@ -325,7 +345,7 @@ class UIManager {
     }
 
     // 更新菜单统计
-    updateMenuStats() {
+    async updateMenuStats() {
         const stats = this.game.getStatistics();
         const progress = this.game.loadProgress();
         
@@ -345,6 +365,23 @@ class UIManager {
         
         if (totalTimeEl) totalTimeEl.textContent = stats.totalTime;
         if (bestTimeEl) bestTimeEl.textContent = stats.bestTime;
+
+        // 检查并更新继续游戏按钮状态
+        try {
+            const continueBtn = document.getElementById('continueBtn');
+            if (continueBtn) {
+                const hasSavedState = await this.game.hasSavedState();
+                if (hasSavedState) {
+                    continueBtn.innerHTML = '继续游戏 <small style="color: #4CAF50;">●</small>';
+                    continueBtn.title = '有未完成的游戏可以继续';
+                } else {
+                    continueBtn.innerHTML = '继续游戏';
+                    continueBtn.title = '开始新关卡';
+                }
+            }
+        } catch (error) {
+            console.error('更新继续按钮状态失败:', error);
+        }
     }
 
     // 显示关卡选择
@@ -408,8 +445,9 @@ class UIManager {
 
     // 获取关卡星数
     getLevelStars(level) {
-        // 这里应该从保存的数据中获取，简化返回随机星数
-        return Math.floor(Math.random() * 3) + 1;
+        // 🔥 修复：基于关卡号生成固定星数，不使用随机
+        // 应该从保存的数据中获取实际星数，这里用固定算法代替随机
+        return ((level * 7) % 3) + 1; // 基于关卡号的固定算法，结果为1-3
     }
 
     // 切换难度标签
@@ -423,9 +461,44 @@ class UIManager {
     }
 
     // 开始关卡
-    startLevel(level) {
+    async startLevel(level) {
         this.showScreen('game');
         
+        // 🔥 关键修复：检查特定关卡的保存状态
+        try {
+            const savedState = await window.sudokuGame?.dataManager?.getLevelState(level);
+            
+            // 如果该关卡有保存状态，询问用户是否继续还是重新开始
+            if (savedState && savedState.inProgress) {
+                const filledCells = savedState.playerGrid ? savedState.playerGrid.flat().filter(n => n !== 0).length : 0;
+                const shouldContinue = confirm(
+                    `检测到第${level}关有未完成的游戏状态\n` +
+                    `已填入 ${filledCells} 个格子\n` +
+                    `保存时间: ${new Date(savedState.savedAt).toLocaleString()}\n\n` +
+                    `点击"确定"继续之前的游戏\n` +
+                    `点击"取消"重新开始该关卡`
+                );
+                
+                if (shouldContinue) {
+                    console.log(`用户选择继续关卡${level}的保存状态`);
+                    const loaded = await this.game.loadLevelState(level);
+                    if (loaded) {
+                        this.updateGameDisplay();
+                        console.log(`✓ 关卡${level}状态加载成功，跳过初始化`);
+                        return;
+                    }
+                } else {
+                    console.log(`用户选择重新开始关卡${level}`);
+                    // 清除该关卡的保存状态
+                    await window.sudokuGame.dataManager.clearLevelState(level);
+                }
+            }
+        } catch (error) {
+            console.warn('检查保存状态时出错，继续正常初始化:', error);
+        }
+        
+        // 正常初始化关卡
+        console.log(`正常初始化关卡${level}...`);
         const levelData = this.game.initializeLevel(level);
         
         // 更新游戏头部信息
@@ -437,6 +510,61 @@ class UIManager {
         
         // 重置UI状态
         this.resetGameUI();
+
+        // 保存初始游戏状态
+        setTimeout(() => {
+            this.game.saveCurrentState().catch(err => {
+                console.error('保存游戏状态失败:', err);
+            });
+        }, 1000);
+    }
+
+    // 更新游戏显示（用于加载保存的状态后）
+    updateGameDisplay() {
+        console.log('开始更新游戏显示...');
+        
+        // 更新游戏头部信息
+        document.getElementById('currentLevel').textContent = `第${this.game.currentLevel}关`;
+        document.getElementById('mistakeCount').textContent = `错误: ${this.game.mistakes}/${this.game.maxMistakes}`;
+        
+        // 获取数独类型（从保存状态中恢复或重新生成）
+        let difficultyType = '标准9x9';
+        if (this.game.currentSolution) {
+            const generator = this.game.generator || new SudokuGenerator();
+            difficultyType = generator.getSudokuType(this.game.currentLevel);
+        }
+        document.getElementById('difficultyType').textContent = difficultyType;
+        
+        // 重新生成网格以确保DOM元素存在
+        console.log('重新生成网格DOM...');
+        this.generateSudokuGrid();
+        
+        // 等待DOM更新后再更新内容
+        setTimeout(() => {
+            console.log('更新网格内容...');
+            this.updateGrid();
+            this.updateHighlights();
+            
+            // 更新选中状态
+            if (this.game.selectedCell.row >= 0 && this.game.selectedCell.col >= 0) {
+                this.selectCell(this.game.selectedCell.row, this.game.selectedCell.col);
+            }
+            
+            // 更新笔记模式状态
+            const noteBtn = document.getElementById('noteBtn');
+            if (noteBtn) {
+                if (this.game.isNoteMode) {
+                    noteBtn.classList.add('active');
+                } else {
+                    noteBtn.classList.remove('active');
+                }
+            }
+            
+            // 更新提示按钮
+            this.updateHintButton();
+            
+            console.log('✓ 游戏显示更新完成');
+        }, 100);
     }
 
     // 生成数独网格
@@ -482,7 +610,11 @@ class UIManager {
         this.game.isNoteMode = false;
         
         document.getElementById('mistakeCount').textContent = `错误: 0/3`;
-        document.getElementById('noteBtn').classList.remove('active');
+        
+        const noteBtn = document.getElementById('noteBtn');
+        if (noteBtn) {
+            noteBtn.classList.remove('active');
+        }
         
         this.updateNumberPad();
         this.updateGrid();
@@ -594,6 +726,13 @@ class UIManager {
                 } else {
                     this.playSound('click'); // 中性音效，表示放置成功但不一定是正确答案
                 }
+                
+                // 延迟保存游戏状态，避免频繁操作
+                setTimeout(() => {
+                    this.game.saveCurrentState().catch(err => {
+                        console.error('保存游戏状态失败:', err);
+                    });
+                }, 500);
             }
             
             // 清除选择状态，允许用户继续操作
@@ -655,6 +794,13 @@ class UIManager {
             this.updateGrid();
             this.updateHighlights();
             this.playSound('click');
+            
+            // 延迟保存游戏状态
+            setTimeout(() => {
+                this.game.saveCurrentState().catch(err => {
+                    console.error('保存游戏状态失败:', err);
+                });
+            }, 300);
         }
     }
 
@@ -672,6 +818,13 @@ class UIManager {
             } else {
                 this.showHintUsed(result.hint);
                 this.playSound('success');
+                
+                // 延迟保存游戏状态
+                setTimeout(() => {
+                    this.game.saveCurrentState().catch(err => {
+                        console.error('保存游戏状态失败:', err);
+                    });
+                }, 500);
             }
         } else {
             this.showHintError(result.reason);
