@@ -402,6 +402,13 @@ class GameLogic {
         // 保存进度
         this.saveProgress();
         
+        // 清除当前完成关卡的游戏状态（因为已经完成）
+        if (window.sudokuGame && window.sudokuGame.dataManager) {
+            window.sudokuGame.dataManager.clearLevelState(this.currentLevel).catch(err => {
+                console.error('清除关卡状态失败:', err);
+            });
+        }
+        
         return {
             time: this.currentTime,
             mistakes: this.mistakes,
@@ -642,6 +649,144 @@ class GameLogic {
             completedLevels: completedLevels.length,
             currentLevel: this.currentLevel
         };
+    }
+
+    // 保存当前游戏状态
+    async saveCurrentState() {
+        if (!window.sudokuGame || !window.sudokuGame.dataManager) {
+            console.warn('无法保存游戏状态：DataManager不可用');
+            return false;
+        }
+
+        try {
+            // 检查游戏状态是否有效
+            if (!this.playerGrid || !Array.isArray(this.playerGrid)) {
+                console.warn('playerGrid无效，跳过保存');
+                return false;
+            }
+
+            const gameState = {
+                level: this.currentLevel,
+                playerGrid: this.playerGrid,
+                notes: this.notes,
+                mistakes: this.mistakes,
+                hintsUsed: this.hintsUsed,
+                currentTime: this.currentTime,
+                startTime: this.startTime,
+                selectedCell: this.selectedCell,
+                selectedNumber: this.selectedNumber,
+                isNoteMode: this.isNoteMode,
+                puzzle: this.currentPuzzle,
+                solution: this.currentSolution
+            };
+
+            console.log(`保存游戏状态 - 关卡${this.currentLevel}, 错误${this.mistakes}, 已填格子数:`, 
+                this.playerGrid.flat().filter(cell => cell !== 0).length);
+
+            await window.sudokuGame.dataManager.saveCurrentGameState(gameState);
+            console.log('✓ 游戏状态已保存成功');
+            return true;
+        } catch (error) {
+            console.error('✗ 保存游戏状态失败:', error);
+            return false;
+        }
+    }
+
+    // 加载游戏状态
+    // 加载特定关卡的状态
+    async loadLevelState(level) {
+        if (!window.sudokuGame || !window.sudokuGame.dataManager) {
+            console.warn('无法加载游戏状态：DataManager不可用');
+            return false;
+        }
+
+        try {
+            console.log(`正在加载关卡${level}的保存状态...`);
+            const savedState = await window.sudokuGame.dataManager.getLevelState(level);
+            if (!savedState) {
+                console.log(`✗ 关卡${level}没有保存的游戏状态`);
+                return false;
+            }
+
+            console.log(`找到关卡${level}的保存状态 - 保存时间: ${new Date(savedState.savedAt).toLocaleString()}`);
+            console.log(`保存状态详情:`, {
+                level: savedState.level,
+                mistakes: savedState.mistakes,
+                hintsUsed: savedState.hintsUsed,
+                filledCells: savedState.playerGrid ? savedState.playerGrid.flat().filter(cell => cell !== 0).length : 0,
+                hasNotes: savedState.notes ? 'yes' : 'no',
+                hasPuzzle: savedState.puzzle ? 'yes' : 'no'
+            });
+
+            // 恢复游戏状态
+            this.currentLevel = savedState.level || level;
+            this.playerGrid = savedState.playerGrid || Array(9).fill().map(() => Array(9).fill(0));
+            this.notes = savedState.notes || Array(9).fill().map(() => Array(9).fill().map(() => new Set()));
+            this.mistakes = savedState.mistakes || 0;
+            this.hintsUsed = savedState.hintsUsed || 0;
+            this.currentTime = savedState.currentTime || 0;
+            this.startTime = savedState.startTime || Date.now();
+            this.selectedCell = savedState.selectedCell || {row: -1, col: -1};
+            this.selectedNumber = savedState.selectedNumber || 0;
+            this.isNoteMode = savedState.isNoteMode || false;
+            this.currentPuzzle = savedState.puzzle;
+            this.currentSolution = savedState.solution;
+
+            // 验证加载的数据
+            if (!this.currentPuzzle || !this.currentSolution) {
+                console.warn('保存的数据缺少题目或解决方案，重新生成...');
+                const levelData = this.generator.generatePuzzle(this.currentLevel);
+                this.currentPuzzle = levelData.puzzle;
+                this.currentSolution = levelData.solution;
+            }
+
+            // 重新开始计时器
+            this.startTimer();
+
+            console.log(`✓ 关卡${level}状态加载成功 - 已填 ${this.playerGrid.flat().filter(cell => cell !== 0).length} 个格子`);
+            return true;
+        } catch (error) {
+            console.error(`✗ 加载关卡${level}状态失败:`, error);
+            return false;
+        }
+    }
+
+    // 向后兼容：加载当前游戏状态（现在加载最新的有进度关卡）
+    async loadCurrentState() {
+        if (!window.sudokuGame || !window.sudokuGame.dataManager) {
+            console.warn('无法加载游戏状态：DataManager不可用');
+            return false;
+        }
+
+        try {
+            console.log('正在查找最新的有进度关卡...');
+            const savedState = await window.sudokuGame.dataManager.getCurrentGameState();
+            if (!savedState) {
+                console.log('✗ 没有找到任何保存的游戏状态');
+                return false;
+            }
+
+            // 使用找到的最新关卡状态
+            return this.loadLevelState(savedState.level);
+        } catch (error) {
+            console.error('✗ 加载游戏状态失败:', error);
+            return false;
+        }
+    }
+
+    // 检查是否有保存的游戏状态
+    async hasSavedState() {
+        if (!window.sudokuGame || !window.sudokuGame.dataManager) {
+            return false;
+        }
+
+        try {
+            const savedState = await window.sudokuGame.dataManager.getCurrentGameState();
+            return savedState && savedState.inProgress;
+        } catch (error) {
+            console.error('检查保存状态失败:', error);
+            return false;
+        }
     }
 }
 
